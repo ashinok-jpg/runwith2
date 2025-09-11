@@ -15,7 +15,7 @@ interface MapPin {
 const Map: React.FC = () => {
   const [pins, setPins] = useState<MapPin[]>([]);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
-  const [userLocation, setUserLocation] = useState({ lat: 35.6762, lng: 139.6503 }); // Tokyo
+  const [userLocation] = useState({ lat: 35.6762, lng: 139.6503 }); // Tokyo
 
   useEffect(() => {
     // Mock map pins
@@ -105,7 +105,7 @@ const Map: React.FC = () => {
         </div>
 
         {/* Map Pins */}
-        {pins.map((pin, index) => {
+        {pins.map(pin => {
           const offsetX = (pin.lng - userLocation.lng) * 8000; // Mock conversion
           const offsetY = (userLocation.lat - pin.lat) * 8000; // Mock conversion
           const Icon = getPinIcon(pin);

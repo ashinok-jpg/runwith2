@@ -120,7 +120,7 @@ export interface Notification {
   id: string;
   uid: string;
   type: 'join_request' | 'event_invite' | 'comment' | 'kudos';
-  payload: any;
+  payload: Record<string, unknown>;
   isRead: boolean;
   createdAt: string;
 }

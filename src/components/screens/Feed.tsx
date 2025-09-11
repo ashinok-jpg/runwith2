@@ -3,6 +3,8 @@ import { Plus, Filter, MapPin } from 'lucide-react';
 import PracticeCard from '../cards/PracticeCard';
 import EventCard from '../cards/EventCard';
 import { Practice, Event } from '../../types';
+import { collection, getDocs } from 'firebase/firestore';
+import { firestore } from '../../lib/RUNWITH2__codex_probe_927';
 
 const Feed: React.FC = () => {
   const [practices, setPractices] = useState<Practice[]>([]);
@@ -10,69 +12,22 @@ const Feed: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // Mock data for demonstration
   useEffect(() => {
-    const mockPractices: Practice[] = [
-      {
-        id: 'p1',
-        ownerUid: 'u1',
-        startedAt: new Date().toISOString(),
-        durationSec: 2400,
-        distanceKm: 8.5,
-        avgPaceSecPerKm: 282,
-        intensity: 'easy',
-        tags: ['朝ラン', 'コース'],
-        route: { start: { lat: 35.6762, lng: 139.6503 } },
-        areaHash: 'xn76q3',
-        inviteOpen: true,
-        privacy: 'area',
-        stats: { kudos: 5, comments: 2, requests: 1 },
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        owner: { id: 'u1', displayName: 'Takeshi Runner', email: 'takeshi@example.com', createdAt: '' }
-      },
-      {
-        id: 'p2',
-        ownerUid: 'u2',
-        startedAt: new Date().toISOString(),
-        durationSec: 3600,
-        distanceKm: 12.0,
-        avgPaceSecPerKm: 300,
-        intensity: 'moderate',
-        tags: ['ロング', '皇居'],
-        route: { start: { lat: 35.6762, lng: 139.6503 } },
-        areaHash: 'xn76q3',
-        inviteOpen: true,
-        privacy: 'public',
-        stats: { kudos: 8, comments: 3, requests: 2 },
-        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        owner: { id: 'u2', displayName: 'Maria Santos', email: 'maria@example.com', createdAt: '' }
+    const fetchFeed = async () => {
+      try {
+        const practiceSnap = await getDocs(collection(firestore, 'practices'));
+        const eventSnap = await getDocs(collection(firestore, 'events'));
+        const loadedPractices = practiceSnap.docs.map(d => ({ id: d.id, ...(d.data() as Practice) }));
+        const loadedEvents = eventSnap.docs.map(d => ({ id: d.id, ...(d.data() as Event) }));
+        setPractices(loadedPractices);
+        setEvents(loadedEvents);
+      } catch (err) {
+        console.error('Failed to load feed', err);
+      } finally {
+        setLoading(false);
       }
-    ];
-
-    const mockEvents: Event[] = [
-      {
-        id: 'e1',
-        hostUid: 'u3',
-        title: 'Morning 10K Group Run',
-        scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        meetPoint: { lat: 35.6762, lng: 139.6503 },
-        distancePlanKm: 10.0,
-        pacePlanSecPerKm: 285,
-        notes: 'Easy pace group run. All levels welcome!',
-        areaHash: 'xn76q3',
-        privacy: 'public',
-        stats: { attendees: 6, bookmarks: 12 },
-        createdAt: new Date().toISOString(),
-        host: { id: 'u3', displayName: 'Running Club Tokyo', email: 'club@example.com', createdAt: '' }
-      }
-    ];
-
-    // Simulate loading
-    setTimeout(() => {
-      setPractices(mockPractices);
-      setEvents(mockEvents);
-      setLoading(false);
-    }, 1000);
+    };
+    fetchFeed();
   }, []);
 
   const handleKudos = (practiceId: string) => {

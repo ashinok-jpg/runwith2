@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, UserPlus, MapPin, Clock, Trophy } from 'lucide-react';
+import { Heart, MessageCircle, UserPlus, MapPin, Clock } from 'lucide-react';
 import { Practice } from '../../types';
 import { formatPace, formatDuration, formatDistance, formatTime, getIntensityColor, getIntensityLabel } from '../../utils/formatters';
 

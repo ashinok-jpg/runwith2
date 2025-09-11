@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Heart, UserPlus, Calendar, MessageCircle, CheckCircle } from 'lucide-react';
+import { Bell, Heart, UserPlus, Calendar, MessageCircle } from 'lucide-react';
 import { Notification } from '../../types';
 import { formatTime } from '../../utils/formatters';
 
