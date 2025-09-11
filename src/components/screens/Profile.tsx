@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Edit, MapPin, Trophy, Target, Settings, Shield, LogOut } from 'lucide-react';
 import { auth, firestore } from '../../lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
 interface PaceBand { easy?: string; mp?: string; threshold?: string; }
@@ -33,7 +33,7 @@ const Profile: React.FC = () => {
   const [uid, setUid] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user: any) => {
+    const unsub = onAuthStateChanged(auth, async (user: User | null) => {
       if (!user) {
         setUid(null);
         setProfile(defaultProfile);
