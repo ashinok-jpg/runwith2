@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Header from './components/common/Header';
 import Feed from './components/screens/Feed';
 import Map from './components/screens/Map';

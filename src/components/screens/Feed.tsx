@@ -17,8 +17,8 @@ const Feed: React.FC = () => {
       try {
         const practiceSnap = await getDocs(collection(firestore, 'practices'));
         const eventSnap = await getDocs(collection(firestore, 'events'));
-        const loadedPractices = practiceSnap.docs.map(d => ({ id: d.id, ...(d.data() as Practice) }));
-        const loadedEvents = eventSnap.docs.map(d => ({ id: d.id, ...(d.data() as Event) }));
+        const loadedPractices = practiceSnap.docs.map(d => ({ ...(d.data() as Practice), id: d.id }));
+        const loadedEvents = eventSnap.docs.map(d => ({ ...(d.data() as Event), id: d.id }));
         setPractices(loadedPractices);
         setEvents(loadedEvents);
       } catch (err) {
