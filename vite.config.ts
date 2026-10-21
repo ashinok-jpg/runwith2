@@ -13,7 +13,8 @@ export default defineConfig(({ command, mode }) => {
   if (command === 'build') {
     // Fail the build instead of deploying an app that crashes on startup
     const env = loadEnv(mode, process.cwd(), 'VITE_');
-    const missing = requiredEnv.filter(key => !env[key]);
+    // Values still copied from .env.example count as missing
+    const missing = requiredEnv.filter(key => !env[key] || env[key].includes('your_'));
     if (missing.length > 0) {
       throw new Error(`Missing env vars: ${missing.join(', ')}. Copy .env.example to .env and fill in your Firebase config.`);
     }

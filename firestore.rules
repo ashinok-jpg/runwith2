@@ -1,0 +1,136 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isShortString(value, maxLen) {
+      return value is string && value.size() <= maxLen;
+    }
+
+    function attendeePath(eventId, uid) {
+      return /databases/$(database)/documents/events/$(eventId)/attendees/$(uid);
+    }
+
+    match /profiles/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isUser(uid)
+        && request.resource.data.uid == uid
+        && isShortString(request.resource.data.displayName, 40)
+        && (!('bio' in request.resource.data) || isShortString(request.resource.data.bio, 300))
+        && (!('homeArea' in request.resource.data) || isShortString(request.resource.data.homeArea, 60));
+      allow delete: if isUser(uid);
+    }
+
+    // Group run sessions
+    match /events/{eventId} {
+      function validSession(data) {
+        return isShortString(data.title, 80) && data.title.size() > 0
+          && isShortString(data.hostName, 40)
+          && data.scheduledAt is string
+          && data.meetPoint.lat is number && data.meetPoint.lng is number
+          && data.areaHash is string
+          && data.distancePlanKm is number && data.distancePlanKm > 0 && data.distancePlanKm <= 100
+          && data.pacePlanSecPerKm is number && data.pacePlanSecPerKm >= 150 && data.pacePlanSecPerKm <= 900
+          && (data.capacity == null || (data.capacity is int && data.capacity >= 2 && data.capacity <= 50))
+          && isShortString(data.notes, 500)
+          && isShortString(data.meetPointLabel, 80)
+          && data.privacy == 'public'
+          && data.status in ['open', 'cancelled'];
+      }
+
+      allow read: if signedIn();
+
+      // The host's own attendee doc is written in the same batch
+      allow create: if signedIn()
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.status == 'open'
+        && request.resource.data.stats.attendees == 1
+        && request.resource.data.stats.bookmarks == 0
+        && validSession(request.resource.data)
+        && existsAfter(attendeePath(eventId, request.auth.uid));
+
+      // Host edits or cancels; the attendee count stays as is
+      allow update: if signedIn()
+        && resource.data.hostUid == request.auth.uid
+        && request.resource.data.hostUid == resource.data.hostUid
+        && request.resource.data.stats == resource.data.stats
+        && validSession(request.resource.data);
+
+      // A runner joining or leaving moves the count by exactly one,
+      // together with creating or deleting their own attendee doc
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats'])
+        && request.resource.data.stats.bookmarks == resource.data.stats.bookmarks
+        && (
+          (request.resource.data.stats.attendees == resource.data.stats.attendees + 1
+            && !exists(attendeePath(eventId, request.auth.uid))
+            && existsAfter(attendeePath(eventId, request.auth.uid)))
+          ||
+          (request.resource.data.stats.attendees == resource.data.stats.attendees - 1
+            && exists(attendeePath(eventId, request.auth.uid))
+            && !existsAfter(attendeePath(eventId, request.auth.uid)))
+        );
+
+      match /attendees/{uid} {
+        allow read: if signedIn();
+
+        allow create: if isUser(uid)
+          && request.resource.data.uid == uid
+          && isShortString(request.resource.data.displayName, 40)
+          && (
+            // Host creating the session
+            (!exists(/databases/$(database)/documents/events/$(eventId))
+              && getAfter(/databases/$(database)/documents/events/$(eventId)).data.hostUid == uid)
+            ||
+            // Runner joining an open session that still has room
+            (get(/databases/$(database)/documents/events/$(eventId)).data.status == 'open'
+              && getAfter(/databases/$(database)/documents/events/$(eventId)).data.stats.attendees
+                == get(/databases/$(database)/documents/events/$(eventId)).data.stats.attendees + 1
+              && (get(/databases/$(database)/documents/events/$(eventId)).data.capacity == null
+                || getAfter(/databases/$(database)/documents/events/$(eventId)).data.stats.attendees
+                  <= get(/databases/$(database)/documents/events/$(eventId)).data.capacity))
+          );
+
+        // Hosts can't leave their own session
+        allow delete: if isUser(uid)
+          && get(/databases/$(database)/documents/events/$(eventId)).data.hostUid != uid
+          && getAfter(/databases/$(database)/documents/events/$(eventId)).data.stats.attendees
+            == get(/databases/$(database)/documents/events/$(eventId)).data.stats.attendees - 1;
+      }
+
+      // Group chat, only for runners in the session
+      match /messages/{messageId} {
+        allow read: if signedIn() && exists(attendeePath(eventId, request.auth.uid));
+        allow create: if signedIn()
+          && exists(attendeePath(eventId, request.auth.uid))
+          && request.resource.data.uid == request.auth.uid
+          && isShortString(request.resource.data.text, 500)
+          && request.resource.data.text.size() > 0;
+      }
+    }
+
+    // Collection group query for "your upcoming sessions"
+    match /{path=**}/attendees/{uid} {
+      allow read: if signedIn();
+    }
+
+    match /notifications/{notificationId} {
+      allow read, delete: if isUser(resource.data.uid);
+      allow create: if signedIn()
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.uid != request.auth.uid
+        && request.resource.data.isRead == false
+        && request.resource.data.type in ['session_joined', 'session_left', 'session_cancelled'];
+      allow update: if isUser(resource.data.uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+    }
+  }
+}

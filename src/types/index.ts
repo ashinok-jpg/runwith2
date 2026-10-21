@@ -9,27 +9,30 @@ export interface User {
   };
 }
 
+export interface PaceBand {
+  easy?: string; // "m:ss" per km
+  mp?: string; // marathon pace
+  threshold?: string;
+}
+
+export interface BestTimes {
+  fiveK?: string;
+  tenK?: string;
+  half?: string;
+  full?: string;
+}
+
+// Stored at profiles/{uid}
 export interface Profile {
   uid: string;
-  age?: number;
-  homeArea: {
-    lat: number;
-    lng: number;
-    radiusKm: number;
-  };
-  paceBand: {
-    easy: string;
-    mp: string; // marathon pace
-    threshold: string;
-  };
-  bestTimes?: {
-    half?: number;
-    full?: number;
-    fiveK?: number;
-    tenK?: number;
-  };
-  bio: string;
-  visibility: 'public' | 'followers' | 'private';
+  displayName: string;
+  photoURL?: string | null;
+  bio?: string;
+  homeArea?: string;
+  paceBand?: PaceBand;
+  bestTimes?: BestTimes;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Practice {
@@ -74,35 +77,48 @@ export interface PracticeReaction {
   from?: User;
 }
 
+// A group run session, stored at events/{id}. Shown as "Session" in the UI.
 export interface Event {
   id: string;
   hostUid: string;
+  hostName: string;
+  hostPhotoURL?: string | null;
   title: string;
   scheduledAt: string;
   meetPoint: {
     lat: number;
     lng: number;
   };
+  meetPointLabel?: string;
   distancePlanKm: number;
   pacePlanSecPerKm: number;
-  capacity?: number;
+  capacity?: number | null;
   notes?: string;
-  sourcePracticeId?: string;
-  areaHash: string;
-  privacy: 'public' | 'link' | 'private';
+  areaHash: string; // geohash of meetPoint, used for nearby queries
+  privacy: 'public';
+  status: 'open' | 'cancelled';
   stats: {
     attendees: number;
     bookmarks: number;
   };
   createdAt: string;
-  host?: User;
 }
 
-export interface Attendance {
-  id: string;
-  eventId: string;
+// Stored at events/{eventId}/attendees/{uid}
+export interface Attendee {
   uid: string;
-  status: 'going' | 'maybe' | 'declined';
+  displayName: string;
+  photoURL?: string | null;
+  joinedAt: string;
+}
+
+// Stored at events/{eventId}/messages/{id}
+export interface SessionMessage {
+  id: string;
+  uid: string;
+  displayName: string;
+  photoURL?: string | null;
+  text: string;
   createdAt: string;
 }
 
@@ -116,11 +132,15 @@ export interface Comment {
   author?: User;
 }
 
+// Stored at notifications/{id}; uid is the recipient
 export interface Notification {
   id: string;
   uid: string;
-  type: 'join_request' | 'event_invite' | 'comment' | 'kudos';
-  payload: Record<string, unknown>;
+  type: 'session_joined' | 'session_left' | 'session_cancelled';
+  fromUid: string;
+  fromName: string;
+  eventId: string;
+  eventTitle: string;
   isRead: boolean;
   createdAt: string;
 }
