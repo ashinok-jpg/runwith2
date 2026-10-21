@@ -32,6 +32,8 @@ const SessionDetailSheet: React.FC<SessionDetailSheetProps> = ({ eventId, onClos
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [draft, setDraft] = useState('');
+  // Inline confirm step; window.confirm is suppressed in some in-app browsers
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,10 +72,9 @@ const SessionDetailSheet: React.FC<SessionDetailSheetProps> = ({ eventId, onClos
     }
   };
 
-  const handleCancel = () => {
-    if (window.confirm(t('detail.cancelConfirm'))) {
-      run(() => cancelSession(session, me));
-    }
+  const handleCancel = async () => {
+    await run(() => cancelSession(session, me));
+    setConfirmingCancel(false);
   };
 
   const handleSend = (e: React.FormEvent) => {
@@ -87,12 +88,33 @@ const SessionDetailSheet: React.FC<SessionDetailSheetProps> = ({ eventId, onClos
   let footer: React.ReactNode;
   if (isCancelled) {
     footer = <p className="text-center text-sm font-medium text-red-600">{t('detail.cancelled')}</p>;
+  } else if (isHost && confirmingCancel) {
+    footer = (
+      <div role="alertdialog" aria-label={t('detail.cancelConfirm')} className="space-y-3">
+        <p className="text-sm text-gray-700 text-center">{t('detail.cancelConfirm')}</p>
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setConfirmingCancel(false)}
+            disabled={busy}
+            className="flex-1 py-3 rounded-full font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-60"
+          >
+            {t('detail.cancelKeep')}
+          </button>
+          <button
+            onClick={handleCancel}
+            disabled={busy}
+            className="flex-1 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-60"
+          >
+            {busy ? t('detail.cancelling') : t('detail.cancelYes')}
+          </button>
+        </div>
+      </div>
+    );
   } else if (isHost) {
     footer = (
       <button
-        onClick={handleCancel}
-        disabled={busy}
-        className="w-full py-3 rounded-full font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-60"
+        onClick={() => setConfirmingCancel(true)}
+        className="w-full py-3 rounded-full font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
       >
         {t('detail.cancel')}
       </button>
