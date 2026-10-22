@@ -1,0 +1,61 @@
+name: Claude Auto Code
+
+# Issue に auto-code ラベルを貼ると、Claude Code が実装して PR を作る
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  auto-code:
+    if: github.event.label.name == 'auto-code'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      # Issue のタイトル・本文は誰でも書けるので、${{ }} で run に直接埋め込まず
+      # 環境変数経由で渡す（シェルインジェクション対策）
+      - name: Run Claude Code
+        env:
+          # Pro / Max のサブスクリプションで認証する（claude setup-token で発行したトークン）
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          claude -p "以下の Issue を解決してください。
+
+          タイトル: $ISSUE_TITLE
+
+          本文:
+          $ISSUE_BODY
+
+          npm run build と npm run lint を実行し、両方成功することを確認してください。" \
+            --permission-mode acceptEdits \
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm run build),Bash(npm run lint),Bash(git status),Bash(git diff:*)"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "fix: resolve issue #${{ github.event.issue.number }}"
+          title: "Auto-fix: ${{ github.event.issue.title }}"
+          body: "Closes #${{ github.event.issue.number }} by Claude Code"
+          branch: "auto-fix-${{ github.event.issue.number }}"
