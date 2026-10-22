@@ -35,7 +35,8 @@ jobs:
       # 環境変数経由で渡す（シェルインジェクション対策）
       - name: Run Claude Code
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Pro / Max のサブスクリプションで認証する（claude setup-token で発行したトークン）
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
