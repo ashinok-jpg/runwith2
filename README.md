@@ -43,6 +43,8 @@ npm install
 npm run dev
 ```
 
+`npm run build` type-checks and builds the production bundle. `npm run lint` runs ESLint over the project.
+
 ## Deploy (Firebase Hosting + Firestore rules)
 
 1. Create `.env` from `.env.example` (the build fails if required values are missing).
