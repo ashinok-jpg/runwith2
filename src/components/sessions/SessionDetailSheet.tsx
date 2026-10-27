@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Calendar, MapPin, Navigation, Route, Send, Timer, Users } from 'lucide-react';
+import { Calendar, MapPin, Navigation, Pencil, Route, Send, Share2 } from 'lucide-react';
 import BottomSheet from '../common/BottomSheet';
 import Avatar from '../common/Avatar';
+import CreateSessionSheet from './CreateSessionSheet';
+import RunnerProfileSheet from './RunnerProfileSheet';
 import { getDisplayName, useAuth } from '../../lib/authContext';
 import {
   cancelSession,
@@ -34,6 +36,9 @@ const SessionDetailSheet: React.FC<SessionDetailSheetProps> = ({ eventId, onClos
   const [draft, setDraft] = useState('');
   // Inline confirm step; window.confirm is suppressed in some in-app browsers
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [viewingRunner, setViewingRunner] = useState<{ uid: string; name: string; photoURL?: string | null } | null>(null);
+  const [shareNote, setShareNote] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,6 +54,29 @@ const SessionDetailSheet: React.FC<SessionDetailSheetProps> = ({ eventId, onClos
       <BottomSheet title={loading ? t('detail.loading') : t('detail.notFound')} onClose={onClose}>
         <p className="text-sm text-gray-500">{loading ? t('detail.loadingSession') : t('detail.removed')}</p>
       </BottomSheet>
+    );
+  }
+
+  if (viewingRunner) {
+    return (
+      <RunnerProfileSheet
+        uid={viewingRunner.uid}
+        fallbackName={viewingRunner.name}
+        fallbackPhotoURL={viewingRunner.photoURL}
+        onBack={() => setViewingRunner(null)}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (editing) {
+    return (
+      <CreateSessionSheet
+        meetPoint={session.meetPoint}
+        existing={session}
+        onClose={() => setEditing(false)}
+        onSaved={() => setEditing(false)}
+      />
     );
   }
 
@@ -75,6 +103,28 @@ const SessionDetailSheet: React.FC<SessionDetailSheetProps> = ({ eventId, onClos
   const handleCancel = async () => {
     await run(() => cancelSession(session, me));
     setConfirmingCancel(false);
+  };
+
+  // Links open the session directly (see App)
+  const shareUrl = `${window.location.origin}/?session=${session.id}`;
+
+  const handleShare = async () => {
+    setShareNote('');
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: session.title, text: t('detail.shareText', { title: session.title }), url: shareUrl });
+        return;
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        // Share sheet unavailable here; fall back to copying
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareNote(t('detail.linkCopied'));
+    } catch {
+      setShareNote(`${t('detail.copyLink')} ${shareUrl}`);
+    }
   };
 
   const handleSend = (e: React.FormEvent) => {
@@ -112,12 +162,23 @@ const SessionDetailSheet: React.FC<SessionDetailSheetProps> = ({ eventId, onClos
     );
   } else if (isHost) {
     footer = (
-      <button
-        onClick={() => setConfirmingCancel(true)}
-        className="w-full py-3 rounded-full font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
-      >
-        {t('detail.cancel')}
-      </button>
+      <div className="flex space-x-3">
+        {!hasStarted && (
+          <button
+            onClick={() => setEditing(true)}
+            className="flex-1 flex items-center justify-center space-x-1.5 py-3 rounded-full font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+          >
+            <Pencil size={16} />
+            <span>{t('detail.edit')}</span>
+          </button>
+        )}
+        <button
+          onClick={() => setConfirmingCancel(true)}
+          className="flex-1 py-3 rounded-full font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+        >
+          {t('detail.cancel')}
+        </button>
+      </div>
     );
   } else if (isAttending) {
     footer = (
@@ -144,68 +205,73 @@ const SessionDetailSheet: React.FC<SessionDetailSheetProps> = ({ eventId, onClos
   return (
     <BottomSheet title={session.title} onClose={onClose} footer={footer}>
       <div className="space-y-5">
-        <div className="flex items-center space-x-3">
-          <Avatar name={session.hostName} photoURL={session.hostPhotoURL} />
-          <div className="flex-1 min-w-0">
-            <div className="text-sm text-gray-500">{t('detail.hostedBy')}</div>
-            <div className="font-medium text-gray-900 truncate">{isHost ? t('detail.you') : session.hostName}</div>
-          </div>
-          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${paceMatchColor[match]}`}>
+        {!isHost && match !== 'unknown' && (
+          <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${paceMatchColor[match]}`}>
             {t(`match.${match}`)}
           </span>
-        </div>
+        )}
 
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="bg-gray-50 rounded-xl py-3">
-            <Route size={16} className="mx-auto text-gray-500 mb-1" />
-            <div className="font-semibold text-gray-900">{formatDistance(session.distancePlanKm)}</div>
-          </div>
-          <div className="bg-gray-50 rounded-xl py-3">
-            <Timer size={16} className="mx-auto text-gray-500 mb-1" />
-            <div className="font-semibold text-gray-900">{formatPace(session.pacePlanSecPerKm)}</div>
-          </div>
-          <div className="bg-gray-50 rounded-xl py-3">
-            <Users size={16} className="mx-auto text-gray-500 mb-1" />
-            <div className="font-semibold text-gray-900">
-              {session.stats.attendees}
-              {session.capacity ? `/${session.capacity}` : ''}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2 text-sm text-gray-700">
-          <div className="flex items-center space-x-2">
-            <Calendar size={16} className="text-gray-500 flex-shrink-0" />
+        <ul className="space-y-3 text-gray-900">
+          <li className="flex items-center space-x-3">
+            <Calendar size={18} className="text-gray-400 flex-shrink-0" />
             <span>{formatSessionTime(session.scheduledAt, lang)}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <MapPin size={16} className="text-gray-500 flex-shrink-0" />
-            <span className="flex-1">{session.meetPointLabel || t('card.meetPointDefault')}</span>
-            <a
-              href={directionsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-1 text-blue-600 font-medium hover:underline"
-            >
-              <Navigation size={14} />
-              <span>{t('detail.directions')}</span>
-            </a>
-          </div>
-        </div>
+          </li>
+          <li className="flex items-center space-x-3">
+            <Route size={18} className="text-gray-400 flex-shrink-0" />
+            <span>
+              {formatDistance(session.distancePlanKm)} · {formatPace(session.pacePlanSecPerKm)}
+            </span>
+          </li>
+          <li className="flex items-center space-x-3">
+            <MapPin size={18} className="text-gray-400 flex-shrink-0" />
+            <span>{session.meetPointLabel || t('card.meetPointDefault')}</span>
+          </li>
+        </ul>
 
-        {session.notes && <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 whitespace-pre-wrap">{session.notes}</p>}
+        <div className="flex space-x-2">
+          <a
+            href={directionsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center space-x-1.5 py-2 rounded-full border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Navigation size={15} />
+            <span>{t('detail.directions')}</span>
+          </a>
+          {!isCancelled && (
+            <button
+              onClick={handleShare}
+              className="flex-1 flex items-center justify-center space-x-1.5 py-2 rounded-full border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <Share2 size={15} />
+              <span>{t('detail.share')}</span>
+            </button>
+          )}
+        </div>
+        {shareNote && (
+          <p role="status" className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2 break-all">
+            {shareNote}
+          </p>
+        )}
+
+        {session.notes && <p className="text-sm text-gray-700 whitespace-pre-wrap">{session.notes}</p>}
 
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-2">{t('detail.going', { n: attendees.length })}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">{t('detail.going', { n: session.capacity ? `${attendees.length}/${session.capacity}` : attendees.length })}</h3>
           <div className="flex flex-wrap gap-2">
             {attendees.map(a => (
-              <div key={a.uid} className="flex items-center space-x-2 bg-gray-50 rounded-full pl-1 pr-3 py-1">
+              <button
+                key={a.uid}
+                onClick={() => setViewingRunner({ uid: a.uid, name: a.displayName, photoURL: a.photoURL })}
+                aria-label={t('detail.viewProfile', { name: a.displayName })}
+                className="flex items-center space-x-2 bg-gray-50 hover:bg-blue-50 rounded-full pl-1 pr-3 py-1 transition-colors"
+              >
                 <Avatar name={a.displayName} photoURL={a.photoURL} size="sm" />
                 <span className="text-sm text-gray-700">
                   {a.uid === user.uid ? t('detail.you') : a.displayName}
                   {a.uid === session.hostUid && <span className="text-gray-400"> · {t('detail.host')}</span>}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </div>

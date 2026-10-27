@@ -8,7 +8,10 @@ Runwith is a running matching app: find group runs near you at your pace, or sta
 - **Create a session on the map**: tap "New session", tap the meeting point (drag the pin to adjust), then set the time, distance, pace and group size.
 - **Matching**: your profile's pace bands are compared with each session's pace. The feed ranks nearby sessions by pace match, then by start time, and has filters for your pace, today and this week.
 - **Join / leave** with a group-size limit, the list of runners going, and a group chat for the runners in each session.
-- **Notifications** when someone joins or leaves your session, or when a session you joined is cancelled.
+- **Edit a session** (host): change the time, distance, pace, group size or notes; everyone going is notified.
+- **Runner profiles**: tap the host or anyone going to see their pace bands, records, bio and how their pace fits yours.
+- **Share a session**: send a link (share menu or copied link) that opens the session directly.
+- **Notifications** when someone joins or leaves your session, or when a session you joined is changed or cancelled.
 - **Profile** with your pace bands, personal records, home area and bio.
 - **Google sign-in** via Firebase Authentication.
 
@@ -30,7 +33,7 @@ Data lives in Firestore:
 | `events/{id}` | Sessions (meeting point, geohash `areaHash`, time, pace, distance, capacity) |
 | `events/{id}/attendees/{uid}` | Runners going |
 | `events/{id}/messages/{id}` | Group chat (readable by attendees only) |
-| `notifications/{id}` | Join / leave / cancel notifications (`uid` is the recipient) |
+| `notifications/{id}` | Join / leave / cancel / update notifications (`uid` is the recipient) |
 
 Initialization lives in `src/lib/firebase.ts`; data access is in `src/lib/sessions.ts` and `src/lib/notifications.ts`.
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit, LogOut, Target, Trophy } from 'lucide-react';
+import { Edit, LogOut } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import { useAuth } from '../../lib/authContext';
 import type { BestTimes, PaceBand } from '../../types';
@@ -15,10 +15,10 @@ const inputClass =
   'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
 const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
 
-const paceFields: { key: keyof PaceBand; label: MessageKey; hint: string; dot: string }[] = [
-  { key: 'easy', label: 'pace.easy', hint: '6:00', dot: 'bg-green-500' },
-  { key: 'mp', label: 'pace.mp', hint: '5:15', dot: 'bg-blue-500' },
-  { key: 'threshold', label: 'pace.threshold', hint: '4:45', dot: 'bg-orange-500' },
+const paceFields: { key: keyof PaceBand; label: MessageKey; hint: string }[] = [
+  { key: 'easy', label: 'pace.easy', hint: '6:00' },
+  { key: 'mp', label: 'pace.mp', hint: '5:15' },
+  { key: 'threshold', label: 'pace.threshold', hint: '4:45' },
 ];
 
 const bestTimeFields: { key: keyof BestTimes; label: MessageKey; hint: string }[] = [
@@ -78,10 +78,10 @@ const Profile: React.FC<ProfileProps> = ({ startEditing = false }) => {
 
   if (isEditing) {
     return (
-      <form onSubmit={handleSave} className="max-w-md mx-auto px-4 py-4 mb-20 space-y-5">
+      <form onSubmit={handleSave} className="max-w-md mx-auto px-4 pt-5 pb-6 space-y-5">
         <h1 className="text-xl font-bold text-gray-900">{t('profile.edit')}</h1>
 
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 space-y-4">
+        <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-4">
           <div>
             <label htmlFor="profile-name" className={labelClass}>{t('profile.displayName')}</label>
             <input
@@ -117,7 +117,7 @@ const Profile: React.FC<ProfileProps> = ({ startEditing = false }) => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
           <h2 className="font-semibold text-gray-900 mb-1">{t('profile.paceTitle')}</h2>
           <p className="text-sm text-gray-500 mb-3">{t('profile.paceHint')}</p>
           <div className="grid grid-cols-3 gap-3">
@@ -136,7 +136,7 @@ const Profile: React.FC<ProfileProps> = ({ startEditing = false }) => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
           <h2 className="font-semibold text-gray-900 mb-3">{t('profile.records')}</h2>
           <div className="grid grid-cols-2 gap-3">
             {bestTimeFields.map(f => (
@@ -167,7 +167,7 @@ const Profile: React.FC<ProfileProps> = ({ startEditing = false }) => {
           <button
             type="submit"
             disabled={busy}
-            className="flex-1 py-3 rounded-full font-semibold text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-60"
+            className="flex-1 py-3 rounded-full font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
           >
             {busy ? t('profile.saving') : t('profile.save')}
           </button>
@@ -176,61 +176,52 @@ const Profile: React.FC<ProfileProps> = ({ startEditing = false }) => {
     );
   }
 
+  const sectionClass = 'bg-white rounded-xl border border-gray-200 px-4 py-3';
+
   return (
-    <div className="max-w-md mx-auto px-4 py-4 mb-20">
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white mb-6">
-        <div className="flex items-center space-x-4">
-          <Avatar name={displayName} photoURL={photoURL} size="lg" className="ring-2 ring-white/40" />
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold truncate">{displayName}</h1>
-            {profile?.homeArea && <p className="text-blue-100 text-sm mt-1">{profile.homeArea}</p>}
-          </div>
-          <button
-            onClick={() => setIsEditing(true)}
-            aria-label={t('profile.edit')}
-            className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
-          >
-            <Edit size={18} />
-          </button>
+    <div className="max-w-md mx-auto px-4 pt-5 pb-6 space-y-4">
+      <div className="flex items-center space-x-4">
+        <Avatar name={displayName} photoURL={photoURL} size="lg" />
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-bold text-gray-900 truncate">{displayName}</h1>
+          {profile?.homeArea && <p className="text-sm text-gray-500 mt-0.5 truncate">{profile.homeArea}</p>}
         </div>
-        {profile?.bio && <p className="text-blue-100 text-sm mt-4">{profile.bio}</p>}
+        <button
+          onClick={() => setIsEditing(true)}
+          className="flex items-center space-x-1 px-3 py-1.5 rounded-full border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          <Edit size={14} />
+          <span>{t('detail.edit')}</span>
+        </button>
       </div>
+      {profile?.bio && <p className="text-sm text-gray-700 whitespace-pre-wrap">{profile.bio}</p>}
 
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
-        <h2 className="font-semibold text-gray-900 mb-4 flex items-center">
-          <Target size={18} className="mr-2 text-blue-500" />
-          {t('profile.paceBands')}
-        </h2>
-        <div className="space-y-3">
+      <section className={sectionClass}>
+        <h2 className="text-sm font-semibold text-gray-500 mb-2">{t('profile.paceBands')}</h2>
+        <dl className="divide-y divide-gray-100">
           {paceFields.map(f => (
-            <div key={f.key} className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">{t(f.label)}</span>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">{paceBand[f.key] ? `${paceBand[f.key]}/km` : '-'}</span>
-                <div className={`w-3 h-3 rounded-full ${f.dot}`} />
-              </div>
+            <div key={f.key} className="flex justify-between py-2 text-sm">
+              <dt className="text-gray-600">{t(f.label)}</dt>
+              <dd className="font-medium text-gray-900">{paceBand[f.key] ? `${paceBand[f.key]}/km` : '-'}</dd>
             </div>
           ))}
-        </div>
-      </div>
+        </dl>
+      </section>
 
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
-        <h2 className="font-semibold text-gray-900 mb-4 flex items-center">
-          <Trophy size={18} className="mr-2 text-yellow-500" />
-          {t('profile.records')}
-        </h2>
-        <div className="grid grid-cols-2 gap-4">
+      <section className={sectionClass}>
+        <h2 className="text-sm font-semibold text-gray-500 mb-2">{t('profile.records')}</h2>
+        <dl className="divide-y divide-gray-100">
           {bestTimeFields.map(f => (
-            <div key={f.key}>
-              <div className="text-lg font-bold text-gray-900">{bestTimes[f.key] || '-'}</div>
-              <div className="text-sm text-gray-600">{t(f.label)}</div>
+            <div key={f.key} className="flex justify-between py-2 text-sm">
+              <dt className="text-gray-600">{t(f.label)}</dt>
+              <dd className="font-medium text-gray-900">{bestTimes[f.key] || '-'}</dd>
             </div>
           ))}
-        </div>
-      </div>
+        </dl>
+      </section>
 
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6 flex items-center justify-between">
-        <span className="font-semibold text-gray-900">{t('profile.language')}</span>
+      <section className={`${sectionClass} flex items-center justify-between`}>
+        <span className="text-sm font-semibold text-gray-500">{t('profile.language')}</span>
         <div className="flex bg-gray-100 rounded-full p-1" role="group" aria-label={t('profile.language')}>
           {(Object.keys(languageNames) as Lang[]).map(l => (
             <button
@@ -238,20 +229,20 @@ const Profile: React.FC<ProfileProps> = ({ startEditing = false }) => {
               onClick={() => setLang(l)}
               aria-pressed={lang === l}
               className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                lang === l ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'
+                lang === l ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
               }`}
             >
               {languageNames[l]}
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
       <button
         onClick={() => signOut()}
-        className="w-full text-left p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-red-50 text-red-600 transition-colors flex items-center"
+        className="w-full flex items-center justify-center space-x-2 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors"
       >
-        <LogOut size={18} className="mr-3" />
+        <LogOut size={16} />
         <span>{t('profile.signOut')}</span>
       </button>
     </div>

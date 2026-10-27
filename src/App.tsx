@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Header from './components/common/Header';
 import Feed from './components/screens/Feed';
 import Map from './components/screens/Map';
@@ -24,9 +24,12 @@ function App() {
   return user ? <SignedInApp uid={user.uid} /> : <SignIn />;
 }
 
+// A shared link looks like /?session=<id>; it survives sign-in because the URL is untouched until then
+const sharedSessionId = (): string | null => new URLSearchParams(window.location.search).get('session');
+
 function SignedInApp({ uid }: { uid: string }) {
   const [activeTab, setActiveTab] = useState('feed');
-  const [openSessionId, setOpenSessionId] = useState<string | null>(null);
+  const [openSessionId, setOpenSessionId] = useState<string | null>(sharedSessionId);
   const [createRequested, setCreateRequested] = useState(false);
   const [editProfile, setEditProfile] = useState(false);
   const { location, status, locate } = useUserLocation();
@@ -34,6 +37,14 @@ function SignedInApp({ uid }: { uid: string }) {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleCreateHandled = useCallback(() => setCreateRequested(false), []);
+
+  // Drop ?session= once it's opened so a reload doesn't reopen it
+  useEffect(() => {
+    if (!sharedSessionId()) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete('session');
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }, []);
 
   const changeTab = (tab: string) => {
     setEditProfile(false);
@@ -82,12 +93,11 @@ function SignedInApp({ uid }: { uid: string }) {
     }
   };
 
-  const isMap = activeTab === 'map';
-
+  // Screen fills the space above the bottom tab bar; lists scroll inside it
   return (
-    <div className={isMap ? 'h-[100dvh] flex flex-col overflow-hidden bg-gray-50' : 'min-h-screen bg-gray-50'}>
+    <div className="h-[100dvh] flex flex-col overflow-hidden bg-gray-50">
+      <main className={`flex-1 relative ${activeTab === 'map' ? '' : 'overflow-y-auto'}`}>{renderActiveScreen()}</main>
       <Header activeTab={activeTab} onTabChange={changeTab} notificationCount={unreadCount} />
-      <main className={isMap ? 'flex-1 relative' : 'pb-safe'}>{renderActiveScreen()}</main>
       {openSessionId && <SessionDetailSheet eventId={openSessionId} onClose={() => setOpenSessionId(null)} />}
     </div>
   );

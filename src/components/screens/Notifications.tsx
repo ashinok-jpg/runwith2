@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, CalendarX, UserMinus, UserPlus } from 'lucide-react';
+import { Bell, CalendarClock, CalendarX, UserMinus, UserPlus } from 'lucide-react';
 import { Notification } from '../../types';
 import { markNotificationsRead } from '../../lib/notifications';
 import { formatTime } from '../../utils/formatters';
@@ -16,12 +16,14 @@ const notificationStyle = {
   session_joined: { icon: UserPlus, color: 'bg-green-100 text-green-600' },
   session_left: { icon: UserMinus, color: 'bg-gray-100 text-gray-600' },
   session_cancelled: { icon: CalendarX, color: 'bg-red-100 text-red-600' },
+  session_updated: { icon: CalendarClock, color: 'bg-blue-100 text-blue-600' },
 };
 
 const notificationKey: Record<Notification['type'], MessageKey> = {
   session_joined: 'notif.joined',
   session_left: 'notif.left',
   session_cancelled: 'notif.cancelled',
+  session_updated: 'notif.updated',
 };
 
 const Notifications: React.FC<NotificationsProps> = ({ notifications, loading, onOpenSession }) => {
@@ -37,7 +39,7 @@ const Notifications: React.FC<NotificationsProps> = ({ notifications, loading, o
     return (
       <div className="max-w-md mx-auto px-4 py-6 space-y-3">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-white rounded-xl p-4 shadow-sm animate-pulse flex items-center space-x-3">
+          <div key={i} className="bg-white rounded-xl p-4 border border-gray-200 animate-pulse flex items-center space-x-3">
             <div className="w-10 h-10 bg-gray-200 rounded-full" />
             <div className="flex-1 space-y-2">
               <div className="h-4 bg-gray-200 rounded w-3/4" />
@@ -50,9 +52,9 @@ const Notifications: React.FC<NotificationsProps> = ({ notifications, loading, o
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-4 mb-20">
+    <div className="max-w-md mx-auto px-4 pt-5 pb-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-gray-900">{t('notif.title')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('notif.title')}</h1>
         {unreadIds.length > 0 && (
           <button
             onClick={() => markNotificationsRead(unreadIds).catch(err => console.error('Failed to mark read', err))}
@@ -79,8 +81,8 @@ const Notifications: React.FC<NotificationsProps> = ({ notifications, loading, o
               <button
                 key={n.id}
                 onClick={() => handleOpen(n)}
-                className={`w-full text-left bg-white rounded-xl p-4 shadow-sm border transition-all hover:shadow-md ${
-                  n.isRead ? 'border-gray-100' : 'border-blue-200 bg-blue-50/30'
+                className={`w-full text-left bg-white rounded-xl px-4 py-3 border transition-colors hover:border-blue-300 ${
+                  n.isRead ? 'border-gray-200' : 'border-blue-300'
                 }`}
               >
                 <div className="flex items-start space-x-3">

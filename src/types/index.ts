@@ -136,7 +136,7 @@ export interface Comment {
 export interface Notification {
   id: string;
   uid: string;
-  type: 'session_joined' | 'session_left' | 'session_cancelled';
+  type: 'session_joined' | 'session_left' | 'session_cancelled' | 'session_updated';
   fromUid: string;
   fromName: string;
   eventId: string;

@@ -111,7 +111,6 @@ const Map: React.FC<MapProps> = ({
   const [draftLabel, setDraftLabel] = useState('');
   const [showSpots, setShowSpots] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [matchesOnly, setMatchesOnly] = useState(false);
 
   const { sessions, error } = useNearbySessions(viewport?.center ?? null, viewport?.radiusKm ?? 5);
 
@@ -127,12 +126,10 @@ const Map: React.FC<MapProps> = ({
     }
   }, [createRequested, onCreateHandled]);
 
+  // Marker color already shows the pace match, so every session stays on the map
   const visibleSessions = useMemo(
-    () =>
-      sessions
-        .map(session => ({ session, match: getPaceMatch(session.pacePlanSecPerKm, profile) }))
-        .filter(({ match }) => !matchesOnly || match === 'great' || match === 'good'),
-    [sessions, profile, matchesOnly]
+    () => sessions.map(session => ({ session, match: getPaceMatch(session.pacePlanSecPerKm, profile) })),
+    [sessions, profile]
   );
 
   const stopPlacing = () => {
@@ -223,29 +220,14 @@ const Map: React.FC<MapProps> = ({
       {/* Top bar */}
       <div className="absolute top-3 left-3 right-3 z-[1000] flex items-start justify-between space-x-2 pointer-events-none">
         <div className="pointer-events-auto flex flex-col items-start space-y-2 min-w-0">
-          {placing ? (
-            <div className="bg-blue-600 text-white rounded-xl shadow-lg px-4 py-3 text-sm font-medium max-w-xs">
+          {placing && (
+            <div className="bg-gray-900 text-white rounded-xl shadow-md px-4 py-3 text-sm max-w-xs">
               {draftPoint ? t('map.adjustPin') : t('map.tapToPlace')}
-            </div>
-          ) : (
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="bg-white rounded-full shadow-md px-3 py-1.5 text-sm text-gray-700">
-                {visibleSessions.length === 1 ? t('map.countOne') : t('map.count', { n: visibleSessions.length })}
-              </div>
-              <button
-                onClick={() => setMatchesOnly(!matchesOnly)}
-                aria-pressed={matchesOnly}
-                className={`rounded-full shadow-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  matchesOnly ? 'bg-green-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {t('map.myPace')}
-              </button>
             </div>
           )}
           <button
             onClick={() => setShowSpots(true)}
-            className="flex items-center space-x-1.5 bg-white rounded-full shadow-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="flex items-center space-x-1.5 bg-white rounded-full shadow-md px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
           >
             <Star size={14} className="text-amber-500" fill="currentColor" />
             <span>{t('map.spots')}</span>
@@ -256,25 +238,25 @@ const Map: React.FC<MapProps> = ({
           onClick={handleLocate}
           aria-label={t('map.showMyLocation')}
           title={t('map.showMyLocation')}
-          className="pointer-events-auto w-10 h-10 bg-white rounded-lg shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="pointer-events-auto w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
         >
           <Crosshair size={18} className={locationStatus === 'granted' ? 'text-blue-600' : 'text-gray-500'} />
         </button>
       </div>
 
       {(error || locationStatus === 'denied') && !placing && (
-        <div className="absolute top-28 left-3 right-3 z-[1000] bg-white/95 rounded-lg shadow px-3 py-2 text-xs text-gray-600">
+        <div className="absolute top-16 left-3 right-3 z-[1000] bg-white/95 rounded-lg shadow px-3 py-2 text-xs text-gray-600">
           {error ? t('feed.loadError') : t('map.locationOff')}
         </div>
       )}
 
       {/* Bottom actions */}
-      <div className="absolute bottom-6 left-3 right-3 z-[1000] flex justify-center pb-safe">
+      <div className="absolute bottom-5 left-3 right-3 z-[1000] flex justify-center">
         {placing ? (
           <div className="flex items-center space-x-3">
             <button
               onClick={stopPlacing}
-              className="flex items-center space-x-1.5 bg-white text-gray-700 rounded-full shadow-lg px-5 py-3 font-medium hover:bg-gray-50"
+              className="flex items-center space-x-1.5 bg-white text-gray-700 rounded-full shadow-md px-5 py-3 font-medium hover:bg-gray-50"
             >
               <X size={18} />
               <span>{t('map.cancel')}</span>
@@ -282,7 +264,7 @@ const Map: React.FC<MapProps> = ({
             <button
               onClick={() => setShowForm(true)}
               disabled={!draftPoint}
-              className="flex items-center space-x-1.5 bg-blue-600 text-white rounded-full shadow-lg px-5 py-3 font-semibold hover:bg-blue-700 disabled:bg-gray-400"
+              className="flex items-center space-x-1.5 bg-blue-600 text-white rounded-full shadow-md px-5 py-3 font-semibold hover:bg-blue-700 disabled:bg-gray-400"
             >
               <Check size={18} />
               <span>{t('map.meetHere')}</span>
@@ -291,7 +273,7 @@ const Map: React.FC<MapProps> = ({
         ) : (
           <button
             onClick={() => setPlacing(true)}
-            className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full shadow-lg px-6 py-3 font-semibold hover:shadow-xl active:scale-95 transition-all"
+            className="flex items-center space-x-2 bg-blue-600 text-white rounded-full shadow-md px-6 py-3 font-semibold hover:bg-blue-700 active:scale-95 transition-all"
           >
             <Plus size={20} />
             <span>{t('map.newSession')}</span>
@@ -304,7 +286,7 @@ const Map: React.FC<MapProps> = ({
           meetPoint={draftPoint}
           initialLabel={draftLabel}
           onClose={() => setShowForm(false)}
-          onCreated={id => {
+          onSaved={id => {
             stopPlacing();
             onOpenSession(id);
           }}

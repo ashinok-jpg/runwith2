@@ -181,6 +181,40 @@ export const cancelSession = async (event: Event, host: Runner): Promise<void> =
   await batch.commit();
 };
 
+// Host edits the details; the meeting point stays where it was set
+export const updateSession = async (event: Event, host: Runner, input: NewSessionInput): Promise<void> => {
+  const eventRef = doc(eventsCol, event.id);
+  const attendees = await getDocs(collection(eventRef, 'attendees'));
+  const now = new Date().toISOString();
+  const batch = writeBatch(firestore);
+
+  batch.update(eventRef, {
+    title: input.title,
+    scheduledAt: input.scheduledAt,
+    meetPointLabel: input.meetPointLabel ?? '',
+    distancePlanKm: input.distancePlanKm,
+    pacePlanSecPerKm: input.pacePlanSecPerKm,
+    capacity: input.capacity ?? null,
+    notes: input.notes ?? '',
+  });
+  attendees.docs
+    .filter(a => a.id !== host.uid)
+    .forEach(a => {
+      batch.set(doc(notificationsCol), {
+        uid: a.id,
+        type: 'session_updated',
+        fromUid: host.uid,
+        fromName: host.displayName,
+        eventId: event.id,
+        eventTitle: input.title,
+        isRead: false,
+        createdAt: now,
+      });
+    });
+
+  await batch.commit();
+};
+
 export const sendSessionMessage = async (eventId: string, runner: Runner, text: string): Promise<void> => {
   await addDoc(collection(eventsCol, eventId, 'messages'), {
     uid: runner.uid,

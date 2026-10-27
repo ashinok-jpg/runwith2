@@ -57,11 +57,16 @@ service cloud.firestore {
         && validSession(request.resource.data)
         && existsAfter(attendeePath(eventId, request.auth.uid));
 
-      // Host edits or cancels; the attendee count stays as is
+      // Host edits or cancels; the attendee count stays as is,
+      // and the group size can't drop below the runners already going
       allow update: if signedIn()
         && resource.data.hostUid == request.auth.uid
         && request.resource.data.hostUid == resource.data.hostUid
         && request.resource.data.stats == resource.data.stats
+        && request.resource.data.meetPoint == resource.data.meetPoint
+        && request.resource.data.areaHash == resource.data.areaHash
+        && (request.resource.data.capacity == null
+          || request.resource.data.capacity >= resource.data.stats.attendees)
         && validSession(request.resource.data);
 
       // A runner joining or leaving moves the count by exactly one,
@@ -128,7 +133,7 @@ service cloud.firestore {
         && request.resource.data.fromUid == request.auth.uid
         && request.resource.data.uid != request.auth.uid
         && request.resource.data.isRead == false
-        && request.resource.data.type in ['session_joined', 'session_left', 'session_cancelled'];
+        && request.resource.data.type in ['session_joined', 'session_left', 'session_cancelled', 'session_updated'];
       allow update: if isUser(resource.data.uid)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
     }

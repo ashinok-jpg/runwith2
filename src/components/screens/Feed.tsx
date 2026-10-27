@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { MapPin, Plus, Target } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import EventCard from '../cards/EventCard';
 import { useAuth } from '../../lib/authContext';
 import { DEFAULT_LOCATION, type LatLng, type LocationStatus } from '../../lib/geo';
@@ -16,11 +16,10 @@ interface FeedProps {
   onEditProfile: () => void;
 }
 
-type Filter = 'recommended' | 'matches' | 'today' | 'week';
+type Filter = 'recommended' | 'today' | 'week';
 
 const filters: { id: Filter; label: MessageKey }[] = [
   { id: 'recommended', label: 'feed.filter.recommended' },
-  { id: 'matches', label: 'feed.filter.matches' },
   { id: 'today', label: 'feed.filter.today' },
   { id: 'week', label: 'feed.filter.week' },
 ];
@@ -44,17 +43,15 @@ const Feed: React.FC<FeedProps> = ({ userLocation, locationStatus, onOpenSession
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime();
     const endOfWeek = now.getTime() + 7 * 24 * 60 * 60 * 1000;
 
-    const scored = sessions
+    const filtered = sessions
       .filter(s => !myIds.has(s.id))
-      .map(s => ({ session: s, match: getPaceMatch(s.pacePlanSecPerKm, profile) }));
-
-    const filtered = scored.filter(({ session, match }) => {
-      const t = new Date(session.scheduledAt).getTime();
-      if (filter === 'matches') return match === 'great' || match === 'good';
-      if (filter === 'today') return t < endOfToday;
-      if (filter === 'week') return t < endOfWeek;
-      return true;
-    });
+      .map(s => ({ session: s, match: getPaceMatch(s.pacePlanSecPerKm, profile) }))
+      .filter(({ session }) => {
+        const time = new Date(session.scheduledAt).getTime();
+        if (filter === 'today') return time < endOfToday;
+        if (filter === 'week') return time < endOfWeek;
+        return true;
+      });
 
     if (filter === 'recommended') {
       // Best pace match first, then soonest
@@ -74,45 +71,48 @@ const Feed: React.FC<FeedProps> = ({ userLocation, locationStatus, onOpenSession
       : t('feed.nearDefault');
 
   return (
-    <div className="max-w-md mx-auto px-4 py-4 mb-24">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <MapPin size={16} className="text-gray-500" />
-          <span>{locationText}</span>
-        </div>
-        <label className="flex items-center space-x-1 text-sm text-gray-600">
-          <span>{t('feed.within')}</span>
-          <select
-            value={radiusKm}
-            onChange={e => setRadiusKm(Number(e.target.value))}
-            className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm"
-          >
-            {radiusOptions.map(r => (
-              <option key={r} value={r}>
-                {r} km
-              </option>
-            ))}
-          </select>
-        </label>
+    <div className="max-w-md mx-auto px-4 pt-5 pb-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">{t('feed.nearby')}</h1>
+        <button
+          onClick={onCreateSession}
+          className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700"
+        >
+          <Plus size={16} />
+          <span>{t('feed.createShort')}</span>
+        </button>
       </div>
+
+      <label className="mt-1 inline-flex items-center text-sm text-gray-500">
+        <span>{locationText} ·</span>
+        <select
+          value={radiusKm}
+          onChange={e => setRadiusKm(Number(e.target.value))}
+          aria-label={t('feed.within')}
+          className="ml-1 bg-transparent text-gray-700 font-medium focus:outline-none cursor-pointer"
+        >
+          {radiusOptions.map(r => (
+            <option key={r} value={r}>
+              {t('feed.radius', { n: r })}
+            </option>
+          ))}
+        </select>
+      </label>
 
       {!hasPace && (
         <button
           onClick={onEditProfile}
-          className="w-full flex items-center space-x-3 text-left bg-gradient-to-r from-green-50 to-blue-50 border border-green-100 rounded-xl p-4 mb-4"
+          className="mt-4 w-full flex items-center justify-between text-left text-sm text-blue-700 bg-blue-50 rounded-xl px-4 py-3"
         >
-          <Target size={22} className="text-green-600 flex-shrink-0" />
-          <div>
-            <div className="font-semibold text-gray-900 text-sm">{t('feed.setPaceTitle')}</div>
-            <div className="text-sm text-gray-600">{t('feed.setPaceBody')}</div>
-          </div>
+          <span>{t('feed.setPaceHint')}</span>
+          <ChevronRight size={16} className="flex-shrink-0" />
         </button>
       )}
 
       {mySessions.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('feed.mine')}</h2>
-          <div className="space-y-3">
+        <section className="mt-6">
+          <h2 className="text-sm font-semibold text-gray-500 mb-2">{t('feed.mine')}</h2>
+          <div className="space-y-2">
             {mySessions.map(s => (
               <EventCard key={s.id} event={s} match="unknown" isMine onOpen={onOpenSession} />
             ))}
@@ -120,15 +120,16 @@ const Feed: React.FC<FeedProps> = ({ userLocation, locationStatus, onOpenSession
         </section>
       )}
 
-      <section>
-        <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('feed.nearby')}</h2>
-        <div className="flex space-x-2 overflow-x-auto pb-3 -mx-4 px-4">
+      <section className="mt-6">
+        <div className="flex space-x-2 mb-3" role="tablist">
           {filters.map(f => (
             <button
               key={f.id}
+              role="tab"
+              aria-selected={filter === f.id}
               onClick={() => setFilter(f.id)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                filter === f.id ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                filter === f.id ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               {t(f.label)}
@@ -139,36 +140,24 @@ const Feed: React.FC<FeedProps> = ({ userLocation, locationStatus, onOpenSession
         {error && <p className="text-sm text-red-600 mb-3">{t('feed.loadError')}</p>}
 
         {loading ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white rounded-xl p-4 shadow-sm animate-pulse">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full" />
-                  <div className="space-y-1.5">
-                    <div className="h-4 bg-gray-200 rounded w-32" />
-                    <div className="h-3 bg-gray-200 rounded w-20" />
-                  </div>
-                </div>
-                <div className="h-3 bg-gray-200 rounded w-40 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-28" />
+              <div key={i} className="bg-white rounded-xl border border-gray-200 px-4 py-3 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+                <div className="h-3 bg-gray-200 rounded w-3/4 mt-2" />
+                <div className="h-3 bg-gray-200 rounded w-1/3 mt-2" />
               </div>
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center bg-white rounded-xl border border-dashed border-gray-200 py-10 px-6">
+          <div className="text-center py-12">
             <p className="font-medium text-gray-900">{t('feed.emptyTitle')}</p>
             <p className="text-sm text-gray-500 mt-1">
               {filter === 'recommended' ? t('feed.emptyFirst') : t('feed.emptyFilter')}
             </p>
-            <button
-              onClick={onCreateSession}
-              className="mt-4 px-5 py-2 bg-blue-500 text-white rounded-full text-sm font-semibold hover:bg-blue-600"
-            >
-              {t('feed.create')}
-            </button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {items.map(({ session, match }) => (
               <EventCard
                 key={session.id}
@@ -181,14 +170,6 @@ const Feed: React.FC<FeedProps> = ({ userLocation, locationStatus, onOpenSession
           </div>
         )}
       </section>
-
-      <button
-        onClick={onCreateSession}
-        aria-label={t('feed.create')}
-        className="fixed bottom-6 right-4 w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center z-40"
-      >
-        <Plus size={24} />
-      </button>
     </div>
   );
 };

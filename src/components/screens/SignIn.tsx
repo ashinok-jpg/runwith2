@@ -43,7 +43,7 @@ const SignIn: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-[100dvh] bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 flex flex-col">
+    <div className="relative min-h-[100dvh] bg-blue-600 flex flex-col">
       <LanguageToggle className="absolute top-4 right-4 bg-white/15 text-white hover:bg-white/25" />
       <div className="flex-1 flex flex-col justify-center max-w-md w-full mx-auto px-6 py-12 text-white">
         <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-6">

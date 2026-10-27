@@ -1,6 +1,5 @@
 import React from 'react';
-import { Bell, MapPin, User, Menu } from 'lucide-react';
-import LanguageToggle from './LanguageToggle';
+import { Bell, List, Map as MapIcon, User } from 'lucide-react';
 import { useI18n } from '../../i18n/context';
 import type { MessageKey } from '../../i18n/strings';
 
@@ -10,52 +9,45 @@ interface HeaderProps {
   notificationCount?: number;
 }
 
-const tabs: { id: string; icon: typeof Menu; label: MessageKey }[] = [
-  { id: 'feed', icon: Menu, label: 'nav.feed' },
-  { id: 'map', icon: MapPin, label: 'nav.map' },
+const tabs: { id: string; icon: typeof List; label: MessageKey }[] = [
+  { id: 'feed', icon: List, label: 'nav.feed' },
+  { id: 'map', icon: MapIcon, label: 'nav.map' },
   { id: 'notifications', icon: Bell, label: 'nav.notifications' },
   { id: 'profile', icon: User, label: 'nav.profile' },
 ];
 
+// Bottom tab bar with labels, within thumb reach on phones
 const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, notificationCount = 0 }) => {
   const { t } = useI18n();
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-[1050] flex-shrink-0">
-      <div className="max-w-md mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">R</span>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900">Runwith</h1>
-          </div>
-
-          <nav className="flex items-center space-x-1">
-            {tabs.map(({ id, icon: Icon, label }) => (
-              <button
-                key={id}
-                onClick={() => onTabChange(id)}
-                aria-label={t(label)}
-                aria-current={activeTab === id ? 'page' : undefined}
-                title={t(label)}
-                className={`p-2 rounded-lg transition-colors relative ${
-                  activeTab === id ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <Icon size={20} />
+    <nav className="flex-shrink-0 bg-white border-t border-gray-200 pb-safe z-[1050]">
+      <div className="max-w-md mx-auto grid grid-cols-4">
+        {tabs.map(({ id, icon: Icon, label }) => {
+          const active = activeTab === id;
+          return (
+            <button
+              key={id}
+              onClick={() => onTabChange(id)}
+              aria-current={active ? 'page' : undefined}
+              className={`flex flex-col items-center justify-center py-2 text-[11px] font-medium transition-colors ${
+                active ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <span className="relative">
+                <Icon size={22} strokeWidth={active ? 2.25 : 1.75} />
                 {id === 'notifications' && notificationCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] leading-none rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
                     {notificationCount > 9 ? '9+' : notificationCount}
                   </span>
                 )}
-              </button>
-            ))}
-            <LanguageToggle className="text-gray-600 hover:bg-gray-50 border border-gray-200" />
-          </nav>
-        </div>
+              </span>
+              <span className="mt-0.5">{t(label)}</span>
+            </button>
+          );
+        })}
       </div>
-    </header>
+    </nav>
   );
 };
 

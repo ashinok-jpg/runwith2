@@ -21,7 +21,7 @@ const en = {
   'common.close': 'Close',
 
   // Header
-  'nav.feed': 'Feed',
+  'nav.feed': 'Find',
   'nav.map': 'Map',
   'nav.notifications': 'Notifications',
   'nav.profile': 'Profile',
@@ -33,24 +33,18 @@ const en = {
   'feed.locating': 'Finding your location…',
   'feed.nearDefault': 'Near Shibuya, Tokyo',
   'feed.within': 'Within',
-  'feed.setPaceTitle': 'Set your pace to get matched',
-  'feed.setPaceBody': 'Add your easy and threshold pace so we can show sessions that fit you.',
   'feed.mine': 'Your upcoming sessions',
   'feed.nearby': 'Sessions nearby',
   'feed.filter.recommended': 'Recommended',
-  'feed.filter.matches': 'My pace',
   'feed.filter.today': 'Today',
   'feed.filter.week': 'This week',
   'feed.emptyTitle': 'No sessions here yet',
   'feed.emptyFirst': 'Be the first to start one in your area.',
   'feed.emptyFilter': 'Try another filter or a wider area.',
-  'feed.create': 'Create a session',
   'feed.loadError': 'Could not load sessions. Check your connection and try again.',
 
   // Session card
-  'card.by': 'by {name}',
   'card.going': 'Going',
-  'card.paceNotSet': 'Pace not set',
   'card.meetPointDefault': 'Meeting point on the map',
   'card.full': 'full',
 
@@ -62,9 +56,6 @@ const en = {
   'match.unknown': 'Set your pace to see matches',
 
   // Map
-  'map.countOne': '1 session here',
-  'map.count': '{n} sessions here',
-  'map.myPace': 'My pace',
   'map.tapToPlace': 'Tap the map or pick a popular spot to set the meeting point.',
   'map.adjustPin': 'Drag the pin or tap again to adjust the meeting point.',
   'map.locationOff': 'Location is off, so the map starts in Tokyo. Allow location access to see sessions near you.',
@@ -77,13 +68,10 @@ const en = {
   // Popular spots
   'spots.title': 'Popular running spots',
   'spots.hint': 'Pick a spot to set the meeting point there. You can still drag the pin afterwards.',
-  'spots.startHere': 'Start a session here',
 
   // Create session
   'create.title': 'New session',
-  'create.pointSet': 'Meeting point set on the map ({lat}, {lng}). Close this to move the pin.',
-  'create.field.title': 'Title',
-  'create.field.titlePlaceholder': 'Easy 10K along the river',
+  'create.field.title': 'Title (optional)',
   'create.field.place': 'Meeting point name (optional)',
   'create.field.placePlaceholder': 'Yoyogi Park, Harajuku gate',
   'create.field.date': 'Date',
@@ -96,19 +84,31 @@ const en = {
   'create.field.notesPlaceholder': "Route, what to bring, where we'll grab coffee after…",
   'create.submit': 'Create session',
   'create.submitting': 'Creating…',
-  'create.error.title': 'Add a title.',
   'create.error.time': 'Pick a start time in the future.',
   'create.error.distance': 'Distance must be between 0.5 and 100 km.',
   'create.error.pace': 'Enter pace as m:ss, e.g. 5:30.',
   'create.error.capacity': 'Group size must be a whole number from 2 to 50, or empty for no limit.',
   'create.error.failed': 'Could not create the session. Please try again.',
+  'create.error.capacityBelow': "Max runners can't be less than the {n} runners already going.",
+
+  // Edit session
+  'edit.title': 'Edit session',
+  'edit.submit': 'Save changes',
+  'edit.submitting': 'Saving…',
+  'edit.pointFixed': "The meeting point can't be changed. To meet somewhere else, cancel this session and create a new one.",
+  'edit.error.failed': 'Could not save the changes. Please try again.',
+
+  // Runner profile
+  'runner.back': 'Back to session',
+  'runner.notFound': "This runner hasn't set up a profile yet.",
+  'runner.compat': 'Pace compared with yours',
+  'runner.noPace': "This runner hasn't set a pace yet.",
 
   // Session detail
   'detail.loading': 'Loading…',
   'detail.loadingSession': 'Loading session…',
   'detail.notFound': 'Session not found',
   'detail.removed': 'This session was removed.',
-  'detail.hostedBy': 'Hosted by',
   'detail.you': 'You',
   'detail.host': 'host',
   'detail.directions': 'Directions',
@@ -124,6 +124,12 @@ const en = {
   'detail.cancelKeep': 'Keep session',
   'detail.cancelYes': 'Yes, cancel',
   'detail.cancelling': 'Cancelling…',
+  'detail.edit': 'Edit',
+  'detail.share': 'Share',
+  'detail.shareText': 'Run with me on Runwith: {title}',
+  'detail.linkCopied': 'Link copied. Send it to your friends.',
+  'detail.copyLink': 'Copy this link:',
+  'detail.viewProfile': "View {name}'s profile",
   'detail.leave': "You're going · Leave session",
   'detail.leaving': 'Leaving…',
   'detail.join': 'Join session',
@@ -147,6 +153,7 @@ const en = {
   'notif.joined': '{name} joined your session "{title}"',
   'notif.left': '{name} left your session "{title}"',
   'notif.cancelled': '{name} cancelled "{title}"',
+  'notif.updated': '{name} changed the details of "{title}". Check the new time and pace.',
 
   // Profile
   'profile.edit': 'Edit profile',
@@ -185,6 +192,13 @@ const en = {
   'time.daysAgo': '{n} days ago',
   'distance.metersAway': '{n}m away',
   'distance.kmAway': '{n}km away',
+  'feed.createShort': 'New',
+  'feed.radius': 'within {n} km',
+  'feed.setPaceHint': 'Set your pace to see the best matches first',
+  'card.attendees': '{n}{cap} going',
+  'create.defaultTitle': '{km}km run at {pace}/km',
+  'create.pointPicked': 'Meeting point picked on the map',
+  'create.more': 'Add a title, place name, group size or notes',
 };
 
 export type MessageKey = keyof typeof en;
@@ -203,10 +217,10 @@ const ja: Record<MessageKey, string> = {
 
   'common.close': '閉じる',
 
-  'nav.feed': 'フィード',
+  'nav.feed': 'さがす',
   'nav.map': '地図',
   'nav.notifications': '通知',
-  'nav.profile': 'プロフィール',
+  'nav.profile': 'マイページ',
   'lang.toggleLabel': '英語に切り替え',
   'lang.toggleShort': 'EN',
 
@@ -214,23 +228,17 @@ const ja: Record<MessageKey, string> = {
   'feed.locating': '現在地を取得中…',
   'feed.nearDefault': '東京・渋谷周辺',
   'feed.within': '範囲',
-  'feed.setPaceTitle': 'ペースを設定してマッチング',
-  'feed.setPaceBody': 'イージーペースと閾値ペースを登録すると、あなたに合うセッションが表示されます。',
   'feed.mine': '参加予定のセッション',
   'feed.nearby': '近くのセッション',
   'feed.filter.recommended': 'おすすめ',
-  'feed.filter.matches': '自分のペース',
   'feed.filter.today': '今日',
   'feed.filter.week': '今週',
   'feed.emptyTitle': 'このエリアにはまだセッションがありません',
   'feed.emptyFirst': '最初のセッションを作ってみましょう。',
   'feed.emptyFilter': '別の条件か、もっと広い範囲で探してみてください。',
-  'feed.create': 'セッションを作成',
   'feed.loadError': 'セッションを読み込めませんでした。接続を確認してもう一度お試しください。',
 
-  'card.by': '主催：{name}',
   'card.going': '参加予定',
-  'card.paceNotSet': 'ペース未設定',
   'card.meetPointDefault': '地図上の集合場所',
   'card.full': '満員',
 
@@ -240,9 +248,6 @@ const ja: Record<MessageKey, string> = {
   'match.slower': 'あなたよりゆっくり',
   'match.unknown': 'ペースを設定すると相性が表示されます',
 
-  'map.countOne': 'このエリアに1件',
-  'map.count': 'このエリアに{n}件',
-  'map.myPace': '自分のペース',
   'map.tapToPlace': '地図をタップするか、人気スポットを選んで集合場所を決めてください。',
   'map.adjustPin': 'ピンをドラッグするか、もう一度タップして位置を調整できます。',
   'map.locationOff': '位置情報がオフのため東京を表示しています。近くのセッションを見るには位置情報を許可してください。',
@@ -254,12 +259,9 @@ const ja: Record<MessageKey, string> = {
 
   'spots.title': '人気のランニングスポット',
   'spots.hint': 'スポットを選ぶと、そこが集合場所になります。あとからピンをドラッグして調整もできます。',
-  'spots.startHere': 'ここでセッションを作成',
 
   'create.title': '新しいセッション',
-  'create.pointSet': '集合場所を地図で設定しました（{lat}, {lng}）。ピンを動かすにはこの画面を閉じてください。',
-  'create.field.title': 'タイトル',
-  'create.field.titlePlaceholder': '川沿いをゆっくり10km',
+  'create.field.title': 'タイトル（任意）',
   'create.field.place': '集合場所の名前（任意）',
   'create.field.placePlaceholder': '代々木公園 原宿門',
   'create.field.date': '日付',
@@ -272,18 +274,28 @@ const ja: Record<MessageKey, string> = {
   'create.field.notesPlaceholder': 'コース、持ち物、ラン後のカフェなど…',
   'create.submit': 'セッションを作成',
   'create.submitting': '作成中…',
-  'create.error.title': 'タイトルを入力してください。',
   'create.error.time': '開始時刻は未来の日時にしてください。',
   'create.error.distance': '距離は0.5〜100kmで入力してください。',
   'create.error.pace': 'ペースは「5:30」のように 分:秒 で入力してください。',
   'create.error.capacity': '定員は2〜50の整数で入力してください（空欄なら制限なし）。',
   'create.error.failed': 'セッションを作成できませんでした。もう一度お試しください。',
+  'create.error.capacityBelow': '定員は現在の参加者数（{n}人）以上にしてください。',
+
+  'edit.title': 'セッションを編集',
+  'edit.submit': '変更を保存',
+  'edit.submitting': '保存中…',
+  'edit.pointFixed': '集合場所は変更できません。場所を変える場合は、このセッションを中止して新しく作成してください。',
+  'edit.error.failed': '変更を保存できませんでした。もう一度お試しください。',
+
+  'runner.back': 'セッションに戻る',
+  'runner.notFound': 'このランナーはまだプロフィールを作成していません。',
+  'runner.compat': 'あなたとのペースの相性',
+  'runner.noPace': 'このランナーはまだペースを設定していません。',
 
   'detail.loading': '読み込み中…',
   'detail.loadingSession': 'セッションを読み込み中…',
   'detail.notFound': 'セッションが見つかりません',
   'detail.removed': 'このセッションは削除されました。',
-  'detail.hostedBy': '主催者',
   'detail.you': 'あなた',
   'detail.host': '主催',
   'detail.directions': '経路',
@@ -299,6 +311,12 @@ const ja: Record<MessageKey, string> = {
   'detail.cancelKeep': '中止しない',
   'detail.cancelYes': '中止する',
   'detail.cancelling': '中止しています…',
+  'detail.edit': '編集',
+  'detail.share': '共有',
+  'detail.shareText': 'Runwithで一緒に走りませんか：{title}',
+  'detail.linkCopied': 'リンクをコピーしました。友達に送ってみましょう。',
+  'detail.copyLink': 'このリンクをコピーしてください：',
+  'detail.viewProfile': '{name}さんのプロフィールを見る',
   'detail.leave': '参加予定・参加をやめる',
   'detail.leaving': '処理中…',
   'detail.join': '参加する',
@@ -320,6 +338,7 @@ const ja: Record<MessageKey, string> = {
   'notif.joined': '{name}さんがセッション「{title}」に参加しました',
   'notif.left': '{name}さんがセッション「{title}」の参加をやめました',
   'notif.cancelled': '{name}さんが「{title}」を中止しました',
+  'notif.updated': '{name}さんが「{title}」の内容を変更しました。時間とペースを確認してください。',
 
   'profile.edit': 'プロフィールを編集',
   'profile.displayName': '表示名',
@@ -356,6 +375,13 @@ const ja: Record<MessageKey, string> = {
   'time.daysAgo': '{n}日前',
   'distance.metersAway': 'ここから{n}m',
   'distance.kmAway': 'ここから{n}km',
+  'feed.createShort': '作成',
+  'feed.radius': '{n}km以内',
+  'feed.setPaceHint': 'ペースを設定すると、合うセッションが上に並びます',
+  'card.attendees': '{n}{cap}人',
+  'create.defaultTitle': '{km}kmラン（{pace}/km）',
+  'create.pointPicked': '地図で選んだ場所で集合',
+  'create.more': 'タイトル・場所の名前・定員・メモを追加',
 };
 
 const dictionaries: Record<Lang, Record<MessageKey, string>> = { en, ja };
