@@ -40,6 +40,15 @@ jobs:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
+          # 貼り付け時に混ざった改行・空白を取り除き、値は出さずに形式だけ確認する
+          TOKEN="$(printf '%s' "$CLAUDE_CODE_OAUTH_TOKEN" | tr -d '[:space:]')"
+          echo "token length: ${#TOKEN} (removed whitespace: $(( ${#CLAUDE_CODE_OAUTH_TOKEN} - ${#TOKEN} )))"
+          case "$TOKEN" in
+            sk-ant-oat*) echo "token prefix: ok" ;;
+            *) echo "::error::CLAUDE_CODE_OAUTH_TOKEN が sk-ant-oat で始まっていません。claude setup-token のトークンを登録し直してください"; exit 1 ;;
+          esac
+          export CLAUDE_CODE_OAUTH_TOKEN="$TOKEN"
+
           claude -p "以下の Issue を解決してください。
 
           タイトル: $ISSUE_TITLE
