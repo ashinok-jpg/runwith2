@@ -199,6 +199,10 @@ const en = {
   'create.defaultTitle': '{km}km run at {pace}/km',
   'create.pointPicked': 'Meeting point picked on the map',
   'create.more': 'Add a title, place name, group size or notes',
+  'install.iosTitle': 'Use Runwith like an app',
+  'install.iosSteps': 'In Safari, tap the Share button, then "Add to Home Screen".',
+  'install.inAppTitle': 'Open this page in your browser',
+  'install.inAppSteps': "Google sign-in doesn't work inside Instagram, Facebook or LINE. Open the menu (⋯) and choose to open in Safari or Chrome.",
 };
 
 export type MessageKey = keyof typeof en;
@@ -382,6 +386,10 @@ const ja: Record<MessageKey, string> = {
   'create.defaultTitle': '{km}kmラン（{pace}/km）',
   'create.pointPicked': '地図で選んだ場所で集合',
   'create.more': 'タイトル・場所の名前・定員・メモを追加',
+  'install.iosTitle': 'ホーム画面に追加してアプリとして使う',
+  'install.iosSteps': 'Safariの共有ボタン（□↑）をタップし、「ホーム画面に追加」を選んでください。',
+  'install.inAppTitle': 'ブラウザで開いてください',
+  'install.inAppSteps': 'InstagramやLINEなどのアプリ内ではGoogleログインができません。メニュー（⋯）から「ブラウザで開く」を選んでください。',
 };
 
 const dictionaries: Record<Lang, Record<MessageKey, string>> = { en, ja };

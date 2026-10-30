@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/authContext';
 import { useI18n } from '../../i18n/context';
 import type { MessageKey } from '../../i18n/strings';
 import LanguageToggle from '../common/LanguageToggle';
+import { isInAppBrowser } from '../../lib/platform';
 
 const signInErrorKey = (err: unknown): MessageKey | null => {
   if (err instanceof FirebaseError) {
@@ -69,6 +70,12 @@ const SignIn: React.FC = () => {
       </div>
 
       <div className="max-w-md w-full mx-auto px-6 pb-10 pb-safe">
+        {isInAppBrowser() && (
+          <div role="alert" className="mb-3 text-sm bg-white text-gray-900 rounded-xl px-4 py-3">
+            <p className="font-semibold">{t('install.inAppTitle')}</p>
+            <p className="text-gray-600 mt-0.5">{t('install.inAppSteps')}</p>
+          </div>
+        )}
         {error && <p className="mb-3 text-sm bg-white/15 text-white rounded-lg px-3 py-2">{t(error)}</p>}
         <button
           onClick={handleSignIn}

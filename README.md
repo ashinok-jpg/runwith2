@@ -15,6 +15,17 @@ Runwith is a running matching app: find group runs near you at your pace, or sta
 - **Profile** with your pace bands, personal records, home area and bio.
 - **Google sign-in** via Firebase Authentication.
 
+## Install on a phone
+
+Runwith is an installable web app (PWA); there is no App Store build.
+
+- **iPhone / iPad:** open the site in Safari, tap the Share button, then "Add to Home Screen". The app shows this hint on the feed until it is dismissed.
+- **Android:** open the site in Chrome and choose "Install app" (or "Add to Home screen") from the menu.
+
+Links opened inside Instagram, Facebook or LINE use those apps' own browser, where Google blocks sign-in. The sign-in screen asks people to open the page in Safari or Chrome instead.
+
+The manifest and icons live in `public/` (`manifest.webmanifest`, `apple-touch-icon.png`, `icon-*.png`).
+
 ## Firebase Setup
 
 1. Copy `.env.example` to `.env` and fill in your Firebase web app config (Firebase console > Project settings > Your apps).

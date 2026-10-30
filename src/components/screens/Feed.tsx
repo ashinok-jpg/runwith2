@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
 import EventCard from '../cards/EventCard';
+import InstallHint from '../common/InstallHint';
 import { useAuth } from '../../lib/authContext';
 import { DEFAULT_LOCATION, type LatLng, type LocationStatus } from '../../lib/geo';
 import { useMySessions, useNearbySessions } from '../../lib/sessions';
@@ -98,6 +99,8 @@ const Feed: React.FC<FeedProps> = ({ userLocation, locationStatus, onOpenSession
           ))}
         </select>
       </label>
+
+      <InstallHint className="mt-4" />
 
       {!hasPace && (
         <button
